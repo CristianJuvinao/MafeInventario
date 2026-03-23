@@ -53,6 +53,20 @@ export default function ProductsPage() {
       });
   }, [products, search, catFilter, sortBy, sortDir]);
 
+  const totals = useMemo(() => {
+    let inversion = 0;
+    let ingresos = 0;
+    for (const p of filtered) {
+      inversion += (p.purchasePrice || 0) * p.quantity;
+      ingresos += p.price * p.quantity;
+    }
+    return {
+      inversion,
+      ingresos,
+      ganancias: ingresos - inversion,
+    };
+  }, [filtered]);
+
   const sortArrow = (col) =>
     sortBy === col ? (sortDir === 1 ? " ↑" : " ↓") : "";
 
@@ -62,7 +76,9 @@ export default function ProductsPage() {
   };
 
   const handleSave = (data) => {
-    editProd ? updateProduct(editProd.id, data) : addProduct(data);
+    editProd
+      ? updateProduct(editProd.id, data)
+      : addProduct(data);
     closeForm();
   };
 
@@ -82,6 +98,7 @@ export default function ProductsPage() {
             </div>
             <div className="modal-body">
               <ProductForm
+                key={editProd?.id || "new"}
                 initial={editProd}
                 onSave={handleSave}
                 onCancel={closeForm}
@@ -154,12 +171,18 @@ export default function ProductsPage() {
                     Producto{sortArrow("name")}
                   </th>
                   <th>Categoría</th>
+                  <th onClick={() => handleSort("purchasePrice")}>
+                    P. Compra{sortArrow("purchasePrice")}
+                  </th>
                   <th onClick={() => handleSort("price")}>
-                    Precio{sortArrow("price")}
+                    P. Venta{sortArrow("price")}
                   </th>
                   <th onClick={() => handleSort("quantity")}>
                     Cantidad{sortArrow("quantity")}
                   </th>
+                  <th>Inversión</th>
+                  <th>Ingresos</th>
+                  <th>Ganancia</th>
                   <th>Estado</th>
                   <th style={{ textAlign: "right" }}>Acciones</th>
                 </tr>
@@ -167,6 +190,10 @@ export default function ProductsPage() {
               <tbody>
                 {filtered.map((p) => {
                   const cat = categories.find((c) => c.id === p.categoryId);
+                  const purchasePrice = p.purchasePrice || 0;
+                  const inversion = purchasePrice * p.quantity;
+                  const ingresos = p.price * p.quantity;
+                  const ganancia = ingresos - inversion;
 
                   return (
                     <tr key={p.id}>
@@ -181,6 +208,9 @@ export default function ProductsPage() {
                             {cat.name}
                           </span>
                         )}
+                      </td>
+                      <td style={{ color: "var(--red)", fontWeight: 600 }}>
+                        {fmt(purchasePrice)}
                       </td>
                       <td style={{ fontWeight: 600 }}>{fmt(p.price)}</td>
                       <td>
@@ -206,15 +236,27 @@ export default function ProductsPage() {
                           </span>
                         )}
                       </td>
+                      <td style={{ color: "var(--red)", fontWeight: 600 }}>
+                        {fmt(inversion)}
+                      </td>
+                      <td style={{ color: "var(--blue)", fontWeight: 600 }}>
+                        {fmt(ingresos)}
+                      </td>
+                      <td
+                        style={{
+                          color: ganancia >= 0 ? "var(--green)" : "var(--red)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {fmt(ganancia)}
+                      </td>
                       <td>
                         <StatusBadge status={getStatus(p)} />
                       </td>
                       <td>
                         <div
                           className="action-row"
-                          style={{
-                            justifyContent: "flex-end",
-                          }}
+                          style={{ justifyContent: "flex-end" }}
                         >
                           <button
                             className="btn-icon"
@@ -236,6 +278,50 @@ export default function ProductsPage() {
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr style={{ borderTop: "2px solid var(--border)" }}>
+                  <td
+                    colSpan={4}
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 13,
+                      paddingTop: 10,
+                      color: "var(--text2)",
+                    }}
+                  >
+                    TOTALES ({filtered.length} productos)
+                  </td>
+                  <td
+                    style={{
+                      color: "var(--red)",
+                      fontWeight: 700,
+                      paddingTop: 10,
+                    }}
+                  >
+                    {fmt(totals.inversion)}
+                  </td>
+                  <td
+                    style={{
+                      color: "var(--blue)",
+                      fontWeight: 700,
+                      paddingTop: 10,
+                    }}
+                  >
+                    {fmt(totals.ingresos)}
+                  </td>
+                  <td
+                    style={{
+                      color:
+                        totals.ganancias >= 0 ? "var(--green)" : "var(--red)",
+                      fontWeight: 700,
+                      paddingTop: 10,
+                    }}
+                  >
+                    {fmt(totals.ganancias)}
+                  </td>
+                  <td colSpan={2} />
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}

@@ -10,12 +10,13 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
   const { categories } = useApp();
 
   const [form, setForm] = useState({
-    name: '',
-    categoryId: categories?.[0]?.id || '',
-    price: '',
-    quantity: '',
-    unit: 'unidad',
-    minStock: '5',
+    name:          '',
+    categoryId:    categories?.[0]?.id || '',
+    purchasePrice: '',
+    price:         '',
+    quantity:      '',
+    unit:          'unidad',
+    minStock:      '5',
     ...initial,
   });
 
@@ -25,14 +26,14 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
   };
 
   const submit = () => {
-    if (!form.name.trim()) return;
-    if (!form.categoryId) return;
-
+    if (!form.name.trim() || !form.categoryId) return;
+    const { imageUrl: _u, imagePath: _p, ...rest } = form;
     onSave({
-      ...form,
-      price: Number(form.price) || 0,
-      quantity: Number(form.quantity) || 0,
-      minStock: Number(form.minStock) || 0,
+      ...rest,
+      purchasePrice: Number(rest.purchasePrice) || 0,
+      price:         Number(rest.price)         || 0,
+      quantity:      Number(rest.quantity)       || 0,
+      minStock:      Number(rest.minStock)       || 0,
     });
   };
 
@@ -40,97 +41,54 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
     <div className="form-grid">
       <div className="form-group full">
         <label>Nombre del producto *</label>
-        <input
-          type="text"
-          name="name"
-          placeholder="Ej: Base Líquida HD"
-          value={form.name}
-          onChange={handleChange}
-        />
+        <input type="text" name="name" placeholder="Ej: Base Líquida HD"
+          value={form.name} onChange={handleChange} />
       </div>
 
       <div className="form-group">
         <label>Categoría</label>
-        <select
-          name="categoryId"
-          className="form-select"
-          value={form.categoryId}
-          onChange={handleChange}
-          disabled={!categories?.length}
-        >
-          {categories?.length ? (
-            categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))
-          ) : (
-            <option value="">No hay categorías</option>
-          )}
+        <select name="categoryId" className="form-select"
+          value={form.categoryId} onChange={handleChange} disabled={!categories?.length}>
+          {categories?.length
+            ? categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
+            : <option value="">No hay categorías</option>}
         </select>
       </div>
 
       <div className="form-group">
         <label>Unidad de medida</label>
-        <select
-          name="unit"
-          className="form-select"
-          value={form.unit}
-          onChange={handleChange}
-        >
-          {UNITS.map(u => (
-            <option key={u} value={u}>
-              {u}
-            </option>
-          ))}
+        <select name="unit" className="form-select" value={form.unit} onChange={handleChange}>
+          {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
         </select>
       </div>
 
       <div className="form-group">
-        <label>Precio unitario (COP)</label>
-        <input
-          type="number"
-          name="price"
-          min="0"
-          placeholder="0"
-          value={form.price}
-          onChange={handleChange}
-        />
+        <label>Precio de compra (COP)</label>
+        <input type="number" name="purchasePrice" min="0" placeholder="0"
+          value={form.purchasePrice} onChange={handleChange} />
+      </div>
+
+      <div className="form-group">
+        <label>Precio de venta (COP)</label>
+        <input type="number" name="price" min="0" placeholder="0"
+          value={form.price} onChange={handleChange} />
       </div>
 
       <div className="form-group">
         <label>Cantidad disponible</label>
-        <input
-          type="number"
-          name="quantity"
-          min="0"
-          placeholder="0"
-          value={form.quantity}
-          onChange={handleChange}
-        />
+        <input type="number" name="quantity" min="0" placeholder="0"
+          value={form.quantity} onChange={handleChange} />
       </div>
 
-      <div className="form-group full">
+      <div className="form-group">
         <label>Stock mínimo (alerta)</label>
-        <input
-          type="number"
-          name="minStock"
-          min="0"
-          placeholder="5"
-          value={form.minStock}
-          onChange={handleChange}
-        />
+        <input type="number" name="minStock" min="0" placeholder="5"
+          value={form.minStock} onChange={handleChange} />
       </div>
 
       <div className="form-group full actions">
-        <button className="btn btn-ghost" onClick={onCancel}>
-          Cancelar
-        </button>
-        <button
-          className="btn btn-primary"
-          onClick={submit}
-          disabled={!categories?.length}
-        >
+        <button className="btn btn-ghost" onClick={onCancel}>Cancelar</button>
+        <button className="btn btn-primary" onClick={submit} disabled={!categories?.length}>
           Guardar
         </button>
       </div>

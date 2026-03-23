@@ -16,10 +16,10 @@ export const INIT_CATEGORIES = [
 ];
 
 export const INIT_PRODUCTS = [
-  { id: 'p1', name: 'Base Líquida HD', categoryId: 'c1', price: 28500, quantity: 12, unit: 'unidad', minStock: 5 },
-  { id: 'p2', name: 'Labial Mate Rojo', categoryId: 'c1', price: 15000, quantity: 3, unit: 'unidad', minStock: 5 },
-  { id: 'p3', name: 'Agua Mineral 500ml', categoryId: 'c2', price: 2500, quantity: 48, unit: 'unidad', minStock: 10 },
-  { id: 'p4', name: 'Jugo Naranja 1L', categoryId: 'c2', price: 5800, quantity: 0, unit: 'unidad', minStock: 8 },
-  { id: 'p5', name: 'Mouse Inalámbrico', categoryId: 'c3', price: 85000, quantity: 7, unit: 'unidad', minStock: 3 },
-  { id: 'p6', name: 'Teclado Mecánico', categoryId: 'c3', price: 220000, quantity: 2, unit: 'unidad', minStock: 3 },
+  { id: 'p1', name: 'Base Líquida HD',     categoryId: 'c1', purchasePrice: 18000, price: 28500,  quantity: 12, unit: 'unidad', minStock: 5 },
+  { id: 'p2', name: 'Labial Mate Rojo',    categoryId: 'c1', purchasePrice:  9000, price: 15000,  quantity:  3, unit: 'unidad', minStock: 5 },
+  { id: 'p3', name: 'Agua Mineral 500ml',  categoryId: 'c2', purchasePrice:  1500, price:  2500,  quantity: 48, unit: 'unidad', minStock: 10 },
+  { id: 'p4', name: 'Jugo Naranja 1L',     categoryId: 'c2', purchasePrice:  3500, price:  5800,  quantity:  0, unit: 'unidad', minStock: 8 },
+  { id: 'p5', name: 'Mouse Inalámbrico',   categoryId: 'c3', purchasePrice: 55000, price: 85000,  quantity:  7, unit: 'unidad', minStock: 3 },
+  { id: 'p6', name: 'Teclado Mecánico',    categoryId: 'c3', purchasePrice:140000, price: 220000, quantity:  2, unit: 'unidad', minStock: 3 },
 ];
