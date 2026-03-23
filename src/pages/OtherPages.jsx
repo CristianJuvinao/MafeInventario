@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { CategoryForm } from '../components/Forms.jsx';
-import { ConfirmDialog, EmptyState } from '../components/UI';
+import { CategoryForm } from '../components/molecules';
+import { EmptyState } from '../components/atoms';
+import { ConfirmDialog } from '../components/molecules';
 import { CATEGORY_ICONS } from '../utils/categoryIcons';
 
 import {
