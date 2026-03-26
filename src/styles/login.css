@@ -1,0 +1,89 @@
+/* ───────────────── LOGIN PAGE ───────────────── */
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ───────────── PANEL IZQUIERDO ───────────── */
+.login-panel {
+  position: relative;
+  padding: 64px 48px;
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(255,255,255,.08), transparent),
+    linear-gradient(160deg, #1a1d27 0%, #0e1016 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Evita que el panel crezca más de la pantalla */
+.login-panel > * {
+  max-width: 100%;
+}
+
+/* ───────────── PANEL DERECHO ───────────── */
+.login-form-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* ───────────── CARD ───────────── */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 36px 34px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeInPage .4s ease;
+}
+
+/* Evita scroll por fuentes grandes */
+.login-card h1 {
+  max-width: 100%;
+}
+
+/* ───────────── GOOGLE BUTTON (por si acaso) ───────────── */
+.login-card button {
+  width: 100%;
+}
+
+/* ───────────── FOOTER LEGAL ───────────── */
+.login-card p {
+  max-width: 100%;
+}
+
+/* ───────────────── RESPONSIVE ───────────────── */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-panel {
+    display: none;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-form-area {
+    padding: 20px;
+  }
+
+  .login-card {
+    padding: 28px 22px;
+    border-radius: 14px;
+  }
+
+  .login-card h1 {
+    font-size: 24px;
+  }
+}

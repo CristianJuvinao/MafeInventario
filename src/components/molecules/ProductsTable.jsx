@@ -5,8 +5,12 @@ import { ProductRow }         from '../atoms/ProductRow';
 import { ProductTableFooter } from '../atoms/ProductTableFooter';
 
 const SortableTh = ({ col, label, sortArrow, onSort, style }) => (
-  <th onClick={() => onSort(col)} style={{ cursor: 'pointer', ...style }}>
-    {label}{sortArrow(col)}
+  <th
+    className="sortable"
+    onClick={() => onSort(col)}
+    style={style}
+  >
+    {label} {sortArrow(col)}
   </th>
 );
 
@@ -16,7 +20,7 @@ export function ProductsTable({ filtered, categories, totals, getStatus, sortArr
       <EmptyState
         icon={<Package size={32} />}
         title="Sin productos"
-        sub="Agrega tu primer producto para comenzar"
+        sub="Agrega tu primer producto o ajusta el filtro de búsqueda"
       />
     );
   }

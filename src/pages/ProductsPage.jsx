@@ -1,15 +1,15 @@
 // src/pages/ProductsPage.jsx
-import { useProducts }    from '../hooks/useProducts';
-import { ProductModal,
-         ProductsToolbar,
-         ProductsTable,
-         ConfirmDialog }  from '../components/molecules';
+import { useProducts } from '../hooks/useProducts';
+import { ProductModal, ProductsToolbar, ProductsTable, ConfirmDialog } from '../components/molecules';
+import { Package } from 'lucide-react';
 
 export default function ProductsPage() {
   const ctx = useProducts();
 
   return (
     <div className="page">
+
+      {/* Modals */}
       {(ctx.showForm || ctx.editProd) && (
         <ProductModal
           editProd={ctx.editProd}
@@ -26,6 +26,17 @@ export default function ProductsPage() {
         />
       )}
 
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text)' }}>
+          Productos
+        </h1>
+        <p style={{ color: 'var(--text2)', fontSize: 14, marginTop: 4 }}>
+          {ctx.products.length} productos registrados
+        </p>
+      </div>
+
+      {/* Toolbar */}
       <ProductsToolbar
         search={ctx.search}
         onSearch={ctx.setSearch}
@@ -36,7 +47,8 @@ export default function ProductsPage() {
         onAdd={() => ctx.setShowForm(true)}
       />
 
-      <div className="card">
+      {/* Table card */}
+      <div className="card" style={{ overflow: 'hidden' }}>
         <ProductsTable
           filtered={ctx.filtered}
           categories={ctx.categories}
@@ -49,6 +61,7 @@ export default function ProductsPage() {
         />
       </div>
 
+      {/* Footer count */}
       {ctx.filtered.length > 0 && (
         <div style={{ marginTop: 12, fontSize: 12, color: 'var(--text3)' }}>
           Mostrando {ctx.filtered.length} de {ctx.products.length} productos

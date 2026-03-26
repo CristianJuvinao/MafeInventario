@@ -1,8 +1,8 @@
 // src/components/molecules/ProductForm.jsx
 import { useState } from 'react';
-import { useApp } from '../../context/AppContext';
-import { UNITS } from '../../utils/constants';
-import { FormField } from '../atoms/FormField';
+import { useApp }   from '../../context/AppContext';
+import { UNITS }    from '../../utils/constants';
+import { FormField }   from '../atoms/FormField';
 import { FormActions } from '../atoms/FormActions';
 
 export function ProductForm({ initial = {}, onSave, onCancel }) {
@@ -16,6 +16,7 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
     quantity:      '',
     unit:          'unidad',
     minStock:      '5',
+    barcode:       '',
     ...initial,
   });
 
@@ -38,26 +39,37 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
 
   return (
     <div className="form-grid">
+
+      {/* Nombre */}
       <FormField label="Nombre del producto *" className="full">
-        <input type="text" name="name" placeholder="Ej: Base Líquida HD"
-          value={form.name} onChange={handleChange} />
+        <input
+          type="text" name="name"
+          placeholder="Ej: Base Líquida HD"
+          value={form.name} onChange={handleChange}
+        />
       </FormField>
 
+      {/* Categoría */}
       <FormField label="Categoría">
         <select name="categoryId" className="form-select"
-          value={form.categoryId} onChange={handleChange} disabled={!categories?.length}>
+          value={form.categoryId} onChange={handleChange}
+          disabled={!categories?.length}
+        >
           {categories?.length
             ? categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
-            : <option value="">No hay categorías</option>}
+            : <option value="">No hay categorías</option>
+          }
         </select>
       </FormField>
 
+      {/* Unidad */}
       <FormField label="Unidad de medida">
         <select name="unit" className="form-select" value={form.unit} onChange={handleChange}>
           {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
         </select>
       </FormField>
 
+      {/* Precios */}
       <FormField label="Precio de compra (COP)">
         <input type="number" name="purchasePrice" min="0" placeholder="0"
           value={form.purchasePrice} onChange={handleChange} />
@@ -68,6 +80,7 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
           value={form.price} onChange={handleChange} />
       </FormField>
 
+      {/* Stock */}
       <FormField label="Cantidad disponible">
         <input type="number" name="quantity" min="0" placeholder="0"
           value={form.quantity} onChange={handleChange} />
@@ -78,7 +91,24 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
           value={form.minStock} onChange={handleChange} />
       </FormField>
 
-      <FormActions onCancel={onCancel} onSave={submit} disabled={!categories?.length} />
+      {/* Margen calculado en tiempo real */}
+      {form.price && form.purchasePrice && Number(form.purchasePrice) > 0 && (
+        <div className="full" style={{
+          padding: '10px 14px', borderRadius: 10,
+          background: 'var(--green-dim)',
+          display: 'flex', alignItems: 'center', gap: 10,
+          fontSize: 13, color: 'var(--green)', fontWeight: 600,
+        }}>
+          Margen estimado:{' '}
+          {(((Number(form.price) - Number(form.purchasePrice)) / Number(form.purchasePrice)) * 100).toFixed(1)}%
+          {' '}· Ganancia por unidad:{' '}
+          ${(Number(form.price) - Number(form.purchasePrice)).toLocaleString('es-CO')}
+        </div>
+      )}
+
+      <div className="full">
+        <FormActions onCancel={onCancel} onSave={submit} disabled={!categories?.length} />
+      </div>
     </div>
   );
 }

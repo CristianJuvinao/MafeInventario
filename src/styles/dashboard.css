@@ -1,0 +1,156 @@
+/* ───────────────── PAGE ───────────────── */
+.page {
+  width: 100%;
+}
+
+/* ───────────────── HEADER ───────────────── */
+.dashboard-header {
+  margin-bottom: 26px;
+}
+
+.dashboard-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  line-height: 1.1;
+}
+
+.dashboard-subtitle {
+  color: var(--text2);
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* ───────────────── GRID ───────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.middle-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+/* ───────────────── MINI CHART ───────────────── */
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.chart-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+}
+
+.chart-subtitle {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.chart-container {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* ───────────────── ACTIVITY ───────────────── */
+.activity-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.activity-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+}
+
+.activity-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.activity-search {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  width: 140px;
+}
+
+/* ───────────────── TABLE ───────────────── */
+.product-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.product-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.td-name {
+  font-size: 13px;
+}
+
+/* ───────────────── ACTIONS ───────────────── */
+.dashboard-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.dashboard-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

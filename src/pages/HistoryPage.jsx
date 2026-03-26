@@ -1,36 +1,26 @@
 // src/pages/HistoryPage.jsx
 import {
-  ArrowDownCircle,
-  ArrowUpCircle,
-  SlidersHorizontal,
-  PlusCircle,
-  MinusCircle,
-  Trash2,
-  History,
-  Search,
+  ArrowDownCircle, ArrowUpCircle, SlidersHorizontal,
+  PlusCircle, MinusCircle, Trash2, History, Search,
 } from 'lucide-react';
-import { EmptyState } from '../components/atoms';
+import { EmptyState }                        from '../components/atoms';
 import { StatCard, ConfirmDialog, MovementModal } from '../components/molecules';
-import { useHistory } from '../hooks/useHistory';
+import { useHistory }                        from '../hooks/useHistory';
 
-/* ── Meta por tipo de movimiento ────────────────────────── */
 const TYPE_META = {
   entrada:     { label: 'Entrada',   color: 'var(--green)',  Icon: ArrowDownCircle },
   salida:      { label: 'Salida',    color: 'var(--red)',    Icon: ArrowUpCircle },
   ajuste:      { label: 'Ajuste',    color: 'var(--blue)',   Icon: SlidersHorizontal },
-  creacion:    { label: 'Creación',  color: 'var(--purple)', Icon: PlusCircle },
+  creacion:    { label: 'Creación',  color: 'var(--accent)', Icon: PlusCircle },
   eliminacion: { label: 'Eliminado', color: 'var(--text3)',  Icon: MinusCircle },
 };
 
-const fmt_date = (iso) =>
+const fmt_date = iso =>
   new Date(iso).toLocaleDateString('es-CO', {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
 
-/* ─────────────────────────────────────────────────────────────
-   Page
-───────────────────────────────────────────────────────────── */
 export default function HistoryPage() {
   const {
     movements, filtered, summary,
@@ -53,19 +43,29 @@ export default function HistoryPage() {
         />
       )}
 
-      {/* ── Stats ─────────────────────────────────────── */}
-      <div className="stats-grid" style={{ marginBottom: 20 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px' }}>
+          Historial
+        </h1>
+        <p style={{ color: 'var(--text2)', fontSize: 14, marginTop: 4 }}>
+          Registro completo de todos los movimientos de inventario.
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="stats-grid" style={{ marginBottom: 24 }}>
         <StatCard
           label="Total Movimientos"
           value={summary.total}
-          icon={<History size={20} />}
+          icon={<History size={19} />}
           iconStyle={{ background: 'var(--blue-dim)', color: 'var(--blue)' }}
         />
         <StatCard
           label="Entradas"
           value={summary.entradas}
           valueStyle={{ color: 'var(--green)' }}
-          icon={<ArrowDownCircle size={20} />}
+          icon={<ArrowDownCircle size={19} />}
           iconStyle={{ background: 'var(--green-dim)', color: 'var(--green)' }}
           sub="unidades ingresadas"
         />
@@ -73,35 +73,35 @@ export default function HistoryPage() {
           label="Salidas"
           value={summary.salidas}
           valueStyle={{ color: 'var(--red)' }}
-          icon={<ArrowUpCircle size={20} />}
-          iconStyle={{ background: 'rgba(248,113,113,0.15)', color: 'var(--red)' }}
+          icon={<ArrowUpCircle size={19} />}
+          iconStyle={{ background: 'var(--red-dim)', color: 'var(--red)' }}
           sub="unidades retiradas"
         />
         <StatCard
           label="Ajustes"
           value={summary.ajustes}
           valueStyle={{ color: 'var(--blue)' }}
-          icon={<SlidersHorizontal size={20} />}
+          icon={<SlidersHorizontal size={19} />}
           iconStyle={{ background: 'var(--blue-dim)', color: 'var(--blue)' }}
           sub="correcciones de stock"
         />
       </div>
 
-      {/* ── Toolbar ───────────────────────────────────── */}
+      {/* Toolbar */}
       <div className="toolbar">
         <div className="search-box">
           <Search size={14} className="search-icon" />
           <input
             placeholder="Buscar producto o nota..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
           />
         </div>
 
         <select
           className="select"
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
+          onChange={e => setTypeFilter(e.target.value)}
         >
           <option value="">Todos los tipos</option>
           {Object.entries(TYPE_META).map(([k, v]) => (
@@ -111,24 +111,24 @@ export default function HistoryPage() {
 
         {movements.length > 0 && (
           <button className="btn btn-ghost" onClick={() => setConfirmClear(true)}>
-            <Trash2 size={14} /> Limpiar
+            <Trash2 size={14} /> Limpiar historial
           </button>
         )}
 
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          <SlidersHorizontal size={14} /> Nuevo Movimiento
+          <SlidersHorizontal size={14} /> Nuevo movimiento
         </button>
       </div>
 
-      {/* ── Tabla ─────────────────────────────────────── */}
-      <div className="card">
+      {/* Table */}
+      <div className="card" style={{ overflow: 'hidden' }}>
         {filtered.length === 0 ? (
           <EmptyState
             icon={<History size={32} />}
             title="Sin movimientos"
             sub={
               movements.length === 0
-                ? 'Los movimientos aparecerán aquí cuando agregues, edites o elimines productos'
+                ? 'Los movimientos aparecerán aquí cuando realices cambios en el inventario'
                 : 'No hay movimientos que coincidan con el filtro'
             }
           />
@@ -145,7 +145,7 @@ export default function HistoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((m) => {
+                {filtered.map(m => {
                   const meta = TYPE_META[m.type] || TYPE_META.ajuste;
                   const Icon = meta.Icon;
                   return (
@@ -160,7 +160,7 @@ export default function HistoryPage() {
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
                           padding: '3px 10px', borderRadius: 20,
-                          fontSize: 12, fontWeight: 600,
+                          fontSize: 12, fontWeight: 700,
                           background: `${meta.color}18`, color: meta.color,
                         }}>
                           <Icon size={12} /> {meta.label}
@@ -196,7 +196,6 @@ export default function HistoryPage() {
           Mostrando {filtered.length} de {movements.length} movimientos
         </div>
       )}
-
     </div>
   );
 }

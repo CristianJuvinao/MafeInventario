@@ -1,72 +1,54 @@
+// src/pages/OtherPages.jsx
 import { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { CategoryForm } from '../components/molecules';
-import { EmptyState } from '../components/atoms';
+import { EmptyState }   from '../components/atoms';
 import { ConfirmDialog } from '../components/molecules';
 import { CATEGORY_ICONS } from '../utils/categoryIcons';
-
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  X,
-  Folder,
-  PartyPopper,
-  AlertTriangle,
+  Plus, Pencil, Trash2, X,
+  Folder, PartyPopper, AlertTriangle,
+  TrendingUp, Package,
 } from 'lucide-react';
 
-/* ── Categories Page ─────────────────────────────────────────── */
+/* ────────────────────────────────────────────
+   Categories Page
+──────────────────────────────────────────── */
 export function CategoriesPage() {
-  const {
-    categories,
-    products,
-    addCategory,
-    updateCategory,
-    deleteCategory,
-  } = useApp();
+  const { categories, products, addCategory, updateCategory, deleteCategory } = useApp();
 
-  const [showForm, setShowForm] = useState(false);
-  const [editCat, setEditCat] = useState(null);
+  const [showForm,  setShowForm]  = useState(false);
+  const [editCat,   setEditCat]   = useState(null);
   const [confirmId, setConfirmId] = useState(null);
 
-  // ── Productos por categoría (optimizado)
   const productCount = useMemo(() => {
     const map = {};
-    for (const p of products) {
-      map[p.categoryId] = (map[p.categoryId] || 0) + 1;
-    }
+    for (const p of products) map[p.categoryId] = (map[p.categoryId] || 0) + 1;
     return map;
   }, [products]);
 
   const countProds = id => productCount[id] || 0;
 
-  const closeForm = () => {
-    setShowForm(false);
-    setEditCat(null);
-  };
+  const closeForm = () => { setShowForm(false); setEditCat(null); };
 
   return (
     <div className="page">
-      {/* ── Modal Crear / Editar ───────────────────── */}
+
+      {/* Edit / create modal */}
       {(showForm || editCat) && (
         <div className="modal-overlay" onClick={closeForm}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <span className="modal-title">
                 {editCat ? 'Editar Categoría' : 'Nueva Categoría'}
               </span>
-              <button className="btn-icon" onClick={closeForm}>
-                <X size={16} />
-              </button>
+              <button className="btn-icon" onClick={closeForm}><X size={16} /></button>
             </div>
-
             <div className="modal-body">
               <CategoryForm
                 initial={editCat}
                 onSave={data => {
-                  editCat
-                    ? updateCategory(editCat.id, data)
-                    : addCategory(data);
+                  editCat ? updateCategory(editCat.id, data) : addCategory(data);
                   closeForm();
                 }}
                 onCancel={closeForm}
@@ -76,32 +58,31 @@ export function CategoriesPage() {
         </div>
       )}
 
-      {/* ── Confirmar eliminar ───────────────────── */}
+      {/* Confirm delete */}
       {confirmId && (
         <ConfirmDialog
-          msg={`¿Eliminar esta categoría? También se eliminarán los ${countProds(
-            confirmId
-          )} productos asociados.`}
-          onConfirm={() => {
-            deleteCategory(confirmId);
-            setConfirmId(null);
-          }}
+          msg={`¿Eliminar esta categoría? También se eliminarán los ${countProds(confirmId)} productos asociados.`}
+          onConfirm={() => { deleteCategory(confirmId); setConfirmId(null); }}
           onCancel={() => setConfirmId(null)}
         />
       )}
 
-      {/* ── Toolbar ─────────────────────────────── */}
-      <div className="toolbar">
-        <div style={{ flex: 1 }} />
+      {/* Header */}
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px' }}>Categorías</h1>
+          <p style={{ color: 'var(--text2)', fontSize: 14, marginTop: 4 }}>
+            {categories.length} categorías · {products.length} productos totales
+          </p>
+        </div>
         <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-          <Plus size={16} />
-          Nueva Categoría
+          <Plus size={16} /> Nueva Categoría
         </button>
       </div>
 
-      {/* ── Empty / Grid ─────────────────────────── */}
+      {/* Grid or empty */}
       {categories.length === 0 ? (
-        <div className="card">
+        <div className="card" style={{ padding: 0 }}>
           <EmptyState
             icon={<Folder size={32} />}
             title="Sin categorías"
@@ -111,60 +92,31 @@ export function CategoriesPage() {
       ) : (
         <div className="cat-grid">
           {categories.map(c => {
-            const Icon =
-              CATEGORY_ICONS[c.icon] || CATEGORY_ICONS.default;
-
+            const Icon = CATEGORY_ICONS[c.icon] || CATEGORY_ICONS.default;
+            const count = countProds(c.id);
             return (
               <div key={c.id} className="card cat-card card-hover">
-                {/* Barra superior de color */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 3,
-                    background: c.color,
-                    borderRadius: '14px 14px 0 0',
-                  }}
-                />
+                {/* Color accent bar */}
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0,
+                  height: 3, background: c.color,
+                  borderRadius: 'var(--radius) var(--radius) 0 0',
+                }} />
 
-                {/* Icono */}
-                <div
-                  className="cat-emoji"
-                  style={{
-                    color: c.color,
-                    background: `${c.color}22`,
-                  }}
-                >
-                  <Icon size={28} />
+                {/* Icon */}
+                <div className="cat-emoji" style={{ color: c.color, background: `${c.color}18` }}>
+                  <Icon size={26} />
                 </div>
 
-                <div
-                  className="cat-card-name"
-                  style={{ color: c.color }}
-                >
-                  {c.name}
-                </div>
-
-                <div className="cat-card-count">
-                  {countProds(c.id)} producto
-                  {countProds(c.id) !== 1 ? 's' : ''}
-                </div>
+                <div className="cat-card-name" style={{ color: c.color }}>{c.name}</div>
+                <div className="cat-card-count">{count} producto{count !== 1 ? 's' : ''}</div>
 
                 <div className="cat-card-actions">
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => setEditCat(c)}
-                  >
-                    <Pencil size={14} />
-                    Editar
+                  <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => setEditCat(c)}>
+                    <Pencil size={13} /> Editar
                   </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => setConfirmId(c.id)}
-                  >
-                    <Trash2 size={14} />
+                  <button className="btn btn-danger btn-sm" onClick={() => setConfirmId(c.id)}>
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
@@ -176,23 +128,35 @@ export function CategoriesPage() {
   );
 }
 
-/* ── Alerts Page ───────────────────────────────────────────── */
+/* ────────────────────────────────────────────
+   Alerts Page
+──────────────────────────────────────────── */
 export function AlertsPage() {
   const { products, categories, getStatus } = useApp();
 
-  const lowProds = useMemo(
-    () =>
-      products
-        .filter(p => getStatus(p) !== 'ok')
-        .sort((a, b) => a.quantity - b.quantity),
+  const lowProds = useMemo(() =>
+    products
+      .filter(p => getStatus(p) !== 'ok')
+      .sort((a, b) => a.quantity - b.quantity),
     [products, getStatus]
   );
 
   const agotados = lowProds.filter(p => getStatus(p) === 'agotado').length;
-  const bajos = lowProds.filter(p => getStatus(p) === 'bajo').length;
+  const bajos    = lowProds.filter(p => getStatus(p) === 'bajo').length;
 
   return (
     <div className="page">
+
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px' }}>
+          Alertas de Stock
+        </h1>
+        <p style={{ color: 'var(--text2)', fontSize: 14, marginTop: 4 }}>
+          Productos que requieren reabastecimiento.
+        </p>
+      </div>
+
       {lowProds.length === 0 ? (
         <div className="card">
           <EmptyState
@@ -203,16 +167,32 @@ export function AlertsPage() {
         </div>
       ) : (
         <>
-          <div style={{ marginBottom: 16, display: 'flex', gap: 10 }}>
-            <span className="badge badge-red">
-              <AlertTriangle size={12} /> {agotados} Agotados
-            </span>
-            <span className="badge badge-yellow">
+          {/* Summary pills */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--red-dim)', color: 'var(--red)',
+              padding: '8px 16px', borderRadius: 10,
+              fontWeight: 700, fontSize: 13,
+              border: '1px solid rgba(220,38,38,.15)',
+            }}>
+              <AlertTriangle size={15} />
+              {agotados} Agotados
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--yellow-dim)', color: 'var(--yellow)',
+              padding: '8px 16px', borderRadius: 10,
+              fontWeight: 700, fontSize: 13,
+              border: '1px solid rgba(217,119,6,.15)',
+            }}>
+              <TrendingUp size={15} />
               {bajos} Stock bajo
-            </span>
+            </div>
           </div>
 
-          <div className="card">
+          {/* Table */}
+          <div className="card" style={{ overflow: 'hidden' }}>
             <div className="table-container">
               <table>
                 <thead>
@@ -221,56 +201,60 @@ export function AlertsPage() {
                     <th>Categoría</th>
                     <th>Stock actual</th>
                     <th>Stock mínimo</th>
+                    <th>Déficit</th>
                     <th>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {lowProds.map(p => {
-                    const cat = categories.find(
-                      c => c.id === p.categoryId
-                    );
-                    const s = getStatus(p);
+                    const cat    = categories.find(c => c.id === p.categoryId);
+                    const s      = getStatus(p);
+                    const deficit = Math.max(0, p.minStock - p.quantity);
 
                     return (
                       <tr key={p.id}>
-                        <td>{p.name}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{
+                              width: 32, height: 32, borderRadius: 8,
+                              background: s === 'agotado' ? 'var(--red-dim)' : 'var(--yellow-dim)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              flexShrink: 0,
+                            }}>
+                              <Package size={15} color={s === 'agotado' ? 'var(--red)' : 'var(--yellow)'} />
+                            </div>
+                            <span className="td-name">{p.name}</span>
+                          </div>
+                        </td>
+
                         <td>
                           {cat && (
                             <span className="td-cat">
-                              <span
-                                className="cat-dot"
-                                style={{ background: cat.color }}
-                              />
+                              <span className="cat-dot" style={{ background: cat.color }} />
                               {cat.name}
                             </span>
                           )}
                         </td>
-                        <td
-                          style={{
-                            fontWeight: 700,
-                            color:
-                              s === 'agotado'
-                                ? 'var(--red)'
-                                : 'var(--yellow)',
-                          }}
-                        >
+
+                        <td style={{
+                          fontWeight: 700,
+                          color: s === 'agotado' ? 'var(--red)' : 'var(--yellow)',
+                        }}>
                           {p.quantity} {p.unit}
                         </td>
-                        <td>
+
+                        <td style={{ color: 'var(--text2)', fontWeight: 600 }}>
                           {p.minStock} {p.unit}
                         </td>
+
+                        <td style={{ fontWeight: 700, color: 'var(--red)' }}>
+                          {deficit > 0 ? `−${deficit} ${p.unit}` : '—'}
+                        </td>
+
                         <td>
-                          <span
-                            className={`badge ${
-                              s === 'agotado'
-                                ? 'badge-red'
-                                : 'badge-yellow'
-                            }`}
-                          >
+                          <span className={`badge ${s === 'agotado' ? 'badge-red' : 'badge-yellow'}`}>
                             <span className="badge-dot" />
-                            {s === 'agotado'
-                              ? 'Agotado'
-                              : 'Bajo stock'}
+                            {s === 'agotado' ? 'Agotado' : 'Bajo stock'}
                           </span>
                         </td>
                       </tr>

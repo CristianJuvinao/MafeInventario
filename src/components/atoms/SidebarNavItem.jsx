@@ -2,13 +2,13 @@
 
 export function SidebarNavItem({ icon: Icon, label, badge, active, onClick }) {
   return (
-    <div
-      className={`nav-item ${active ? 'active' : ''}`}
+    <button
+      className={`nav-item${active ? ' active' : ''}`}
       onClick={onClick}
     >
-      <span className="nav-icon"><Icon size={18} /></span>
-      <span>{label}</span>
+      <Icon size={17} />
+      <span style={{ flex: 1 }}>{label}</span>
       {badge > 0 && <span className="nav-badge">{badge}</span>}
-    </div>
+    </button>
   );
 }
