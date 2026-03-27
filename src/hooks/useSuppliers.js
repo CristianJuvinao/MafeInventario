@@ -1,47 +1,44 @@
 // src/hooks/useSuppliers.js
-import { useState, useMemo, useCallback } from 'react';
-import { useApp } from '../context/AppContext';
+// Proveedores persistidos en Firestore (colección `suppliers`)
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { onSnapshot, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { useApp }  from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { userCol, userDoc, uid } from '../utils/firestore';
 
 export function useSuppliers() {
-  const { products, categories } = useApp();
+  const { categories } = useApp();
+  const { user } = useAuth();
+  const userId = user?.uid;
 
+  const [suppliers, setSuppliers] = useState([]);
   const [search,    setSearch]    = useState('');
   const [showForm,  setShowForm]  = useState(false);
   const [editSupp,  setEditSupp]  = useState(null);
   const [confirmId, setConfirmId] = useState(null);
 
-  // Local state for suppliers (not persisted to Firestore in this version)
-  const [suppliers, setSuppliers] = useState([
-    {
-      id: 's1',
-      name: 'Distribuidora Nacional',
-      contact: 'Carlos Pérez',
-      phone: '+57 310 000 0001',
-      email: 'ventas@distnacional.com',
-      city: 'Bogotá',
-      categoryIds: [],
-      notes: 'Proveedor principal de maquillaje y cosméticos.',
-      active: true,
-    },
-    {
-      id: 's2',
-      name: 'Tech Import S.A.S',
-      contact: 'Laura Gómez',
-      phone: '+57 320 000 0002',
-      email: 'compras@techimport.co',
-      city: 'Medellín',
-      categoryIds: [],
-      notes: 'Importación de electrónica y accesorios.',
-      active: true,
-    },
-  ]);
+  // ── Firestore listener ─────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+    const unsub = onSnapshot(userCol(userId, 'suppliers'), snap => {
+      setSuppliers(
+        snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
+    });
+    return unsub;
+  }, [userId]);
 
   const filtered = useMemo(() =>
-    suppliers.filter(s =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.contact.toLowerCase().includes(search.toLowerCase()) ||
-      s.city.toLowerCase().includes(search.toLowerCase())
-    ),
+    suppliers.filter(s => {
+      const q = search.toLowerCase();
+      return (
+        s.name?.toLowerCase().includes(q) ||
+        s.contact?.toLowerCase().includes(q) ||
+        s.city?.toLowerCase().includes(q)
+      );
+    }),
     [suppliers, search]
   );
 
@@ -50,30 +47,28 @@ export function useSuppliers() {
     setEditSupp(null);
   }, []);
 
-  const handleSave = useCallback((data) => {
+  const handleSave = useCallback(async (data) => {
+    if (!userId) return;
     if (editSupp) {
-      setSuppliers(prev =>
-        prev.map(s => s.id === editSupp.id ? { ...s, ...data } : s)
-      );
+      await updateDoc(userDoc(userId, 'suppliers', editSupp.id), data);
     } else {
-      setSuppliers(prev => [
-        ...prev,
-        { ...data, id: `s${Date.now()}`, active: true },
-      ]);
+      const id = 'sup_' + uid();
+      await setDoc(userDoc(userId, 'suppliers', id), { ...data, id, active: true });
     }
     closeForm();
-  }, [editSupp, closeForm]);
+  }, [userId, editSupp, closeForm]);
 
-  const handleDelete = useCallback(() => {
-    setSuppliers(prev => prev.filter(s => s.id !== confirmId));
+  const handleDelete = useCallback(async () => {
+    if (!userId || !confirmId) return;
+    await deleteDoc(userDoc(userId, 'suppliers', confirmId));
     setConfirmId(null);
-  }, [confirmId]);
+  }, [userId, confirmId]);
 
-  const toggleActive = useCallback((id) => {
-    setSuppliers(prev =>
-      prev.map(s => s.id === id ? { ...s, active: !s.active } : s)
-    );
-  }, []);
+  const toggleActive = useCallback(async (id) => {
+    if (!userId) return;
+    const s = suppliers.find(x => x.id === id);
+    if (s) await updateDoc(userDoc(userId, 'suppliers', id), { active: !s.active });
+  }, [userId, suppliers]);
 
   return {
     suppliers, filtered,

@@ -240,7 +240,6 @@ tr:hover td {
 .cat-card {
   padding: 22px;
   cursor: pointer;
-  position: relative;
   overflow: hidden;
 }
 

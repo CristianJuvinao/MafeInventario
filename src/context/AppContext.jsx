@@ -1,12 +1,13 @@
-
+// src/context/AppContext.jsx
 import { createContext, useContext, useCallback } from 'react';
-import { useAuth }             from './AuthContext';
-import { useTheme }            from '../hooks/useTheme';
-import { useToast }            from '../hooks/useToast';
-import { useFirestoreSync }    from '../hooks/useFirestoreSync';
-import { useCategoryService }  from '../hooks/useCategoryService';
-import { useProductService }   from '../hooks/useProductService';
-import { getStatus }           from '../utils/helpers.js';
+import { useAuth }            from './AuthContext';
+import { useTheme }           from '../hooks/useTheme';
+import { useToast }           from '../hooks/useToast';
+import { useFirestoreSync }   from '../hooks/useFirestoreSync';
+import { useCategoryService } from '../hooks/useCategoryService';
+import { useProductService }  from '../hooks/useProductService';
+import { useSalesService }    from '../hooks/useSalesService';
+import { getStatus }          from '../utils/helpers.js';
 
 const AppContext = createContext(null);
 
@@ -14,20 +15,19 @@ export function AppProvider({ children }) {
   const { user }  = useAuth();
   const userId    = user?.uid;
 
-  const { theme, setTheme }                               = useTheme();
-  const { toasts, toast }                                 = useToast();
-  const { categories, products, movements, ready }        = useFirestoreSync(userId);
-  const { addCategory, updateCategory, deleteCategory }   = useCategoryService(userId, categories, products, toast);
+  const { theme, setTheme }                                    = useTheme();
+  const { toasts, toast }                                      = useToast();
+  const { categories, products, movements, sales, ready }      = useFirestoreSync(userId);
+  const { addCategory, updateCategory, deleteCategory }        = useCategoryService(userId, categories, products, toast);
   const { addProduct, updateProduct, deleteProduct,
-          registerMovement, clearMovements: _clearMovements } = useProductService(userId, products, toast);
+          registerMovement, clearMovements: _clearMovements }  = useProductService(userId, products, toast);
+  const { registerSale, deleteSale }                           = useSalesService(userId, products, categories, toast);
 
-  /* clearMovements necesita el array actual de movements */
   const clearMovements = useCallback(
     () => _clearMovements(movements),
     [_clearMovements, movements]
   );
 
-  /* exportCSV vive aquí porque depende de products + categories + toast */
   const exportCSV = useCallback(() => {
     const header = 'Nombre,Categoría,P.Compra,P.Venta,Cantidad,Unidad,Inversión,Ingresos,Ganancia,Stock mín.,Estado\n';
     const rows = products.map(p => {
@@ -53,11 +53,12 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      categories, products, movements, ready,
+      categories, products, movements, sales, ready,
       theme, setTheme, toasts, toast,
       addCategory, updateCategory, deleteCategory,
       addProduct, updateProduct, deleteProduct,
       registerMovement, clearMovements,
+      registerSale, deleteSale,
       getStatus, exportCSV,
     }}>
       {children}

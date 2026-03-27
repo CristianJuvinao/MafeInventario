@@ -5,7 +5,7 @@ import {
   Sun, Moon, LogOut,
   LayoutDashboard, Package, Tags,
   AlertTriangle, History, FileSpreadsheet,
-  Truck, BarChart2,
+  Truck, BarChart2, ShoppingCart,
 } from 'lucide-react';
 import { SidebarLogo }         from '../atoms/SidebarLogo';
 import { SidebarNavItem }      from '../atoms/SidebarNavItem';
@@ -13,6 +13,7 @@ import { SidebarCategoryItem } from '../atoms/SidebarCategoryItem';
 
 const NAV_ITEMS = [
   { id: 'dashboard',  label: 'Dashboard',      icon: LayoutDashboard },
+  { id: 'sales',      label: 'Ventas',          icon: ShoppingCart     },
   { id: 'products',   label: 'Productos',       icon: Package          },
   { id: 'categories', label: 'Categorías',      icon: Tags             },
   { id: 'alerts',     label: 'Alertas',         icon: AlertTriangle    },
@@ -23,8 +24,8 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar({ page, setPage, open, setOpen }) {
-  const { categories, products, movements, getStatus, theme, setTheme } = useApp();
-  const { user, logout } = useAuth();
+  const { categories, products, movements, sales, getStatus, theme, setTheme } = useApp();
+  const { logout } = useAuth();
 
   const alertCount = products.filter(p => getStatus(p) !== 'ok').length;
 
@@ -32,7 +33,8 @@ export default function Sidebar({ page, setPage, open, setOpen }) {
     ...item,
     badge:
       item.id === 'alerts'  ? alertCount :
-      item.id === 'history' ? movements.length || 0 : 0,
+      item.id === 'history' ? movements.length || 0 :
+      item.id === 'sales'   ? sales.length || 0 : 0,
   }));
 
   const handleNav = (id) => { setPage(id); setOpen(false); };
@@ -42,13 +44,8 @@ export default function Sidebar({ page, setPage, open, setOpen }) {
       {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
 
       <aside className={`sidebar${open ? ' open' : ''}`}>
-
-        {/* Logo */}
         <SidebarLogo />
 
-        {/* User */}
-
-        {/* Main nav */}
         <nav className="sidebar-nav">
           <div className="nav-section-title">Menú</div>
 
@@ -79,18 +76,13 @@ export default function Sidebar({ page, setPage, open, setOpen }) {
           )}
         </nav>
 
-        {/* Footer */}
         <div className="sidebar-footer">
           <SidebarNavItem
             icon={theme === 'dark' ? Sun : Moon}
             label={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
             onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
           />
-          <SidebarNavItem
-            icon={LogOut}
-            label="Cerrar sesión"
-            onClick={logout}
-          />
+          <SidebarNavItem icon={LogOut} label="Cerrar sesión" onClick={logout} />
         </div>
       </aside>
     </>

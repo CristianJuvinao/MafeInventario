@@ -13,6 +13,7 @@ import HistoryPage   from './pages/HistoryPage';
 import ImportPage    from './pages/ImportPage';
 import SuppliersPage from './pages/SuppliersPage';
 import ReportsPage   from './pages/ReportsPage';
+import SalesPage     from './pages/SalesPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { AlertsPage }     from './pages/AlertsPage';
 
@@ -20,6 +21,7 @@ import {
   LayoutDashboard, Package, Folder,
   AlertTriangle, History, FileSpreadsheet,
   Truck, BarChart2, Boxes, Bell, Settings,
+  ShoppingCart,
 } from 'lucide-react';
 
 const PAGES = {
@@ -31,6 +33,7 @@ const PAGES = {
   import:     { label: 'Importar Excel',   icon: FileSpreadsheet },
   suppliers:  { label: 'Proveedores',      icon: Truck           },
   reports:    { label: 'Reportes',         icon: BarChart2       },
+  sales:      { label: 'Ventas',           icon: ShoppingCart    },
 };
 
 function LoadingScreen() {
@@ -62,7 +65,7 @@ function LoadingScreen() {
 
 export default function App() {
   const { user, loading: authLoading } = useAuth();
-  const { theme, ready, movements, products, getStatus } = useApp();
+  const { theme, ready, movements, products, sales, getStatus } = useApp();
 
   const [page,        setPage]        = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,7 +92,6 @@ export default function App() {
       <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} />
 
       <div className="main">
-        {/* Topbar */}
         <header className="topbar">
           <button
             className="btn-icon menu-toggle"
@@ -99,19 +101,13 @@ export default function App() {
             ☰
           </button>
 
-          {/* Title */}
           <div className="topbar-title">
             <CurrentIcon size={17} color="var(--accent)" />
             <span>{PAGES[page]?.label}</span>
           </div>
 
-
-          {/* Right side */}
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-
-            {/* Bell con badge */}
-            <button className="btn-icon" style={{ position: 'relative' }}
-              onClick={() => setPage('alerts')}>
+            <button className="btn-icon" style={{ position: 'relative' }} onClick={() => setPage('alerts')}>
               <Bell size={17} />
               {alertCount > 0 && (
                 <span style={{
@@ -125,22 +121,20 @@ export default function App() {
 
             <button className="btn-icon"><Settings size={17} /></button>
 
-            {/* User pill */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 9,
               padding: '6px 12px', borderRadius: 10,
-              background: 'var(--surface2)',
-              cursor: 'pointer',
+              background: 'var(--surface2)', cursor: 'pointer',
             }}>
               <div style={{
                 width: 28, height: 28, borderRadius: '50%',
-                background: 'var(--accent-dim)', color: 'var(--accent)',
+                background: 'var(--accent-soft)', color: 'var(--accent)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700, overflow: 'hidden',
               }}>
                 {user.photoURL
                   ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : (user.displayName || user.email || '?')[0].toUpperCase()
                 }
               </div>
@@ -156,7 +150,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* Page */}
         <main className="content">
           {page === 'dashboard'  && <DashboardPage setPage={setPage} />}
           {page === 'products'   && <ProductsPage />}
@@ -166,6 +159,7 @@ export default function App() {
           {page === 'import'     && <ImportPage />}
           {page === 'suppliers'  && <SuppliersPage />}
           {page === 'reports'    && <ReportsPage />}
+          {page === 'sales'      && <SalesPage />}
         </main>
       </div>
 

@@ -1,6 +1,5 @@
 // src/hooks/useFirestoreSync.js
-// Responsabilidad única: mantener categories, products y movements
-// sincronizados con Firestore en tiempo real, y sembrar datos iniciales.
+// Mantiene categories, products, movements y SALES sincronizados con Firestore.
 import { useState, useEffect } from 'react';
 import { onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -11,14 +10,14 @@ export function useFirestoreSync(userId) {
   const [categories, setCategories] = useState([]);
   const [products,   setProducts]   = useState([]);
   const [movements,  setMovements]  = useState([]);
+  const [sales,      setSales]      = useState([]);
   const [ready,      setReady]      = useState(false);
 
-  /* ── Listeners en tiempo real ──────────────────────────── */
   useEffect(() => {
     if (!userId) { setReady(false); return; }
 
     setReady(false);
-    const loaded = { categories: false, products: false, movements: false };
+    const loaded = { categories: false, products: false, movements: false, sales: false };
 
     const markLoaded = key => {
       loaded[key] = true;
@@ -44,10 +43,20 @@ export function useFirestoreSync(userId) {
       markLoaded('movements');
     });
 
-    return () => { unsubCat(); unsubProd(); unsubMov(); };
+    // ── NEW: sales listener ──────────────────────────────────
+    const unsubSales = onSnapshot(userCol(userId, 'sales'), snap => {
+      setSales(
+        snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+      );
+      markLoaded('sales');
+    });
+
+    return () => { unsubCat(); unsubProd(); unsubMov(); unsubSales(); };
   }, [userId]);
 
-  /* ── Seed inicial ──────────────────────────────────────── */
+  // Seed inicial
   useEffect(() => {
     if (!ready || !userId) return;
     if (categories.length > 0 || products.length > 0) return;
@@ -58,5 +67,5 @@ export function useFirestoreSync(userId) {
     batch.commit();
   }, [ready, userId, categories.length, products.length]);
 
-  return { categories, products, movements, ready };
+  return { categories, products, movements, sales, ready };
 }
