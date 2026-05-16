@@ -1,80 +1,25 @@
 // src/pages/ReportsPage.jsx
-import { useMemo } from 'react';
-import { useApp }  from '../context/AppContext';
-import { useSalesStats } from '../hooks/useSalesStats';
-import { fmt }     from '../utils/helpers.js';
-import { CATEGORY_ICONS } from '../utils/categoryIcons';
+import { useApp }            from '../context/AppContext';
+import { useSalesStats }     from '../hooks/useSalesStats';
+import { useInventoryStats } from '../hooks/useInventoryStats';
+import { fmt }               from '../utils/helpers.js';
+import { DonutChart, HorizontalBarChart, ChartLegend } from '../components/atoms/ChartComponents';
 import {
   TrendingUp, TrendingDown, Package,
   BarChart2, PieChart, Download,
   Wallet, Boxes, ShoppingCart,
 } from 'lucide-react';
 
-function Bar({ value, max, color }) {
-  return (
-    <div style={{ height: 6, borderRadius: 4, background: 'var(--surface2)', overflow: 'hidden' }}>
-      <div style={{
-        height: '100%',
-        width: `${max > 0 ? (value / max) * 100 : 0}%`,
-        background: color || 'var(--accent)',
-        borderRadius: 4,
-        transition: 'width .5s cubic-bezier(.4,0,.2,1)',
-      }} />
-    </div>
-  );
-}
+
 
 export default function ReportsPage() {
-  const { products, categories, movements, getStatus, exportCSV, sales } = useApp();
+  const { products, categories, movements, sales, exportCSV } = useApp();
   const salesStats = useSalesStats(sales);
+  const inv        = useInventoryStats(products, categories);
 
-  const inv = useMemo(() => {
-    let inversionTotal = 0, ingresosTotal = 0;
-    let agotados = 0, bajos = 0, ok = 0;
-    const perCat = {};
-
-    for (const p of products) {
-      const purchase = p.purchasePrice || 0;
-      const inv_ = purchase * p.quantity;
-      const ing  = p.price  * p.quantity;
-      inversionTotal += inv_;
-      ingresosTotal  += ing;
-
-      const s = getStatus(p);
-      if (s === 'agotado') agotados++;
-      else if (s === 'bajo') bajos++;
-      else ok++;
-
-      if (!perCat[p.categoryId]) perCat[p.categoryId] = { inv: 0, ing: 0, count: 0 };
-      perCat[p.categoryId].inv   += inv_;
-      perCat[p.categoryId].ing   += ing;
-      perCat[p.categoryId].count += 1;
-    }
-
-    const gananciasTotal = ingresosTotal - inversionTotal;
-    const margen = inversionTotal > 0
-      ? ((gananciasTotal / inversionTotal) * 100).toFixed(1)
-      : '0.0';
-
-    const topProducts = [...products]
-      .map(p => ({ ...p, totalValue: p.price * p.quantity, ganancia: (p.price - (p.purchasePrice || 0)) * p.quantity }))
-      .sort((a, b) => b.totalValue - a.totalValue)
-      .slice(0, 6);
-
-    const catBreakdown = categories.map(c => ({
-      ...c,
-      ...(perCat[c.id] || { inv: 0, ing: 0, count: 0 }),
-      ganancia: (perCat[c.id]?.ing || 0) - (perCat[c.id]?.inv || 0),
-    })).sort((a, b) => b.ing - a.ing);
-
-    return {
-      inversionTotal, ingresosTotal, gananciasTotal, margen,
-      agotados, bajos, ok,
-      topProducts, maxValue: topProducts[0]?.totalValue || 1,
-      catBreakdown, maxIng: catBreakdown[0]?.ing || 1,
-      movCount: movements.length,
-    };
-  }, [products, categories, movements, getStatus]);
+  const agotados = inv.out.length;
+  const bajos    = inv.low.length;
+  const ok       = inv.okCount;
 
   return (
     <div className="page">
@@ -96,9 +41,9 @@ export default function ReportsPage() {
       </div>
       <div className="stats-grid" style={{ marginBottom: 20 }}>
         {[
-          { label: 'Ganancias hoy',      value: fmt(salesStats.profitToday),  icon: <TrendingUp size={18} />,   style: { background: 'var(--green-dim)', color: 'var(--green)' }, vStyle: { color: 'var(--green)' } },
-          { label: 'Ganancias esta semana', value: fmt(salesStats.profitWeek), icon: <ShoppingCart size={18} />, style: { background: 'var(--blue-dim)', color: 'var(--blue)' },  vStyle: { color: 'var(--blue)' } },
-          { label: 'Ganancias este mes', value: fmt(salesStats.profitMonth),   icon: <BarChart2 size={18} />,    style: { background: 'var(--accent-soft)', color: 'var(--accent)' }, vStyle: { color: 'var(--accent)' } },
+          { label: 'Ganancias hoy',         value: fmt(salesStats.profitToday),  icon: <TrendingUp size={18} />,   style: { background: 'var(--green-dim)', color: 'var(--green)' },  vStyle: { color: 'var(--green)' } },
+          { label: 'Ganancias esta semana',  value: fmt(salesStats.profitWeek),   icon: <ShoppingCart size={18} />, style: { background: 'var(--blue-dim)',  color: 'var(--blue)' },   vStyle: { color: 'var(--blue)' } },
+          { label: 'Ganancias este mes',     value: fmt(salesStats.profitMonth),  icon: <BarChart2 size={18} />,    style: { background: 'var(--accent-soft)', color: 'var(--accent)' }, vStyle: { color: 'var(--accent)' } },
         ].map((s, i) => (
           <div key={i} className="card" style={{ padding: '18px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -116,9 +61,9 @@ export default function ReportsPage() {
       </div>
       <div className="stats-grid" style={{ marginBottom: 20 }}>
         {[
-          { label: 'Inversión total',    value: fmt(inv.inversionTotal), icon: <TrendingDown size={19} />, iconStyle: { background: 'var(--red-dim)',   color: 'var(--red)'   }, vStyle: { color: 'var(--red)' },   sub: 'Costo en stock' },
-          { label: 'Ingresos esperados', value: fmt(inv.ingresosTotal),  icon: <Wallet size={19} />,       iconStyle: { background: 'var(--blue-dim)',  color: 'var(--blue)'  }, vStyle: { color: 'var(--blue)' },  sub: 'Valor de venta total' },
-          { label: 'Ganancia potencial', value: fmt(inv.gananciasTotal), icon: <TrendingUp size={19} />,   iconStyle: { background: 'var(--green-dim)', color: 'var(--green)' }, vStyle: { color: 'var(--green)' }, sub: `Margen: ${inv.margen}%` },
+          { label: 'Inversión total',    value: fmt(inv.inversionTotal),  icon: <TrendingDown size={19} />, iconStyle: { background: 'var(--red-dim)',   color: 'var(--red)'   }, vStyle: { color: 'var(--red)' },   sub: 'Costo en stock' },
+          { label: 'Ingresos esperados', value: fmt(inv.ingresosTotal),   icon: <Wallet size={19} />,       iconStyle: { background: 'var(--blue-dim)',  color: 'var(--blue)'  }, vStyle: { color: 'var(--blue)' },  sub: 'Valor de venta total' },
+          { label: 'Ganancia potencial', value: fmt(inv.gananciasTotal),  icon: <TrendingUp size={19} />,   iconStyle: { background: 'var(--green-dim)', color: 'var(--green)' }, vStyle: { color: 'var(--green)' }, sub: `Margen: ${inv.margen}%` },
         ].map((s, i) => (
           <div key={i} className="card" style={{ padding: '18px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -134,59 +79,56 @@ export default function ReportsPage() {
       {/* ── Two column ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 16 }}>
 
-        {/* Stock status */}
+        {/* Stock status — donut */}
         <div className="card" style={{ padding: '20px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontWeight: 700 }}>
             <Boxes size={16} style={{ color: 'var(--accent)' }} /> Estado del Stock
           </div>
-          {[
-            { label: 'En buen estado', count: inv.ok,       color: 'var(--green)'  },
-            { label: 'Stock bajo',     count: inv.bajos,    color: 'var(--yellow)' },
-            { label: 'Agotados',       count: inv.agotados, color: 'var(--red)'    },
-          ].map((row, i) => (
-            <div key={i} style={{ marginBottom: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{row.label}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: row.color }}>
-                  {row.count} <span style={{ color: 'var(--text3)', fontWeight: 400 }}>
-                    ({products.length > 0 ? ((row.count / products.length) * 100).toFixed(0) : 0}%)
-                  </span>
-                </span>
-              </div>
-              <Bar value={row.count} max={products.length} color={row.color} />
-            </div>
-          ))}
-          <div style={{ marginTop: 8, padding: '10px 14px', borderRadius: 10, background: 'var(--surface2)', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+          <DonutChart
+            slices={[
+              { name: 'En buen estado', value: ok,       color: '#22c55e' },
+              { name: 'Stock bajo',     value: bajos,    color: '#fbbf24' },
+              { name: 'Agotados',       value: agotados, color: '#f87171' },
+            ].filter(s => s.value > 0)}
+            height={160}
+          />
+          <ChartLegend
+            items={[
+              { label: `En orden (${ok})`,        color: '#22c55e' },
+              { label: `Stock bajo (${bajos})`,   color: '#fbbf24' },
+              { label: `Agotados (${agotados})`,  color: '#f87171' },
+            ]}
+            style={{ marginTop: 14, justifyContent: 'center' }}
+          />
+          <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 10, background: 'var(--surface2)', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
             <span style={{ color: 'var(--text2)' }}>Movimientos registrados</span>
-            <span style={{ fontWeight: 700 }}>{inv.movCount}</span>
+            <span style={{ fontWeight: 700 }}>{movements.length}</span>
           </div>
         </div>
 
-        {/* Category breakdown */}
+        {/* Category breakdown — horizontal bars */}
         <div className="card" style={{ padding: '20px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontWeight: 700 }}>
-            <PieChart size={16} style={{ color: 'var(--accent)' }} /> Por Categoría
+            <PieChart size={16} style={{ color: 'var(--accent)' }} /> Por Categoría (inventario)
           </div>
-          {inv.catBreakdown.map(c => {
-            const Icon = CATEGORY_ICONS[c.icon] || CATEGORY_ICONS.default;
-            return (
-              <div key={c.id} style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, background: `${c.color}20`, color: c.color }}>
-                      <Icon size={13} />
-                    </span>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text3)' }}>{c.count} prod.</span>
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: c.ganancia >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                    {fmt(c.ing)}
-                  </span>
-                </div>
-                <Bar value={c.ing} max={inv.maxIng} color={c.color} />
-              </div>
-            );
-          })}
+          {inv.catBreakdown.length === 0 ? (
+            <div style={{ color: 'var(--text3)', fontSize: 13, textAlign: 'center', padding: 24 }}>Sin categorías</div>
+          ) : (
+            <>
+              <HorizontalBarChart
+                items={inv.catBreakdown.map(c => ({
+                  name: c.name,
+                  value: c.ingresos,
+                  profit: c.ganancia,
+                  color: c.color,
+                }))}
+              />
+              <ChartLegend
+                items={inv.catBreakdown.map(c => ({ label: `${c.name} (${c.count})`, color: c.color }))}
+                style={{ marginTop: 12 }}
+              />
+            </>
+          )}
         </div>
       </div>
 

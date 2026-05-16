@@ -2,18 +2,22 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 
+export const PAYMENT_METHODS = [
+  { key: 'efectivo',      label: 'Efectivo',     },
+  { key: 'transferencia', label: 'Transferencia', },
+  { key: 'tarjeta',       label: 'Tarjeta',       },
+  { key: 'otro',          label: 'Otro',          },
+];
+
 export function useSales() {
-  const {
-    products, categories, sales,
-    registerSale, deleteSale,
-    getStatus,
-  } = useApp();
+  const { products, categories, sales, registerSale, deleteSale, getStatus } = useApp();
 
   // ── Cart state ────────────────────────────────────────────
-  const [cart,    setCart]    = useState([]);   // [{ productId, qty }]
-  const [note,    setNote]    = useState('');
-  const [search,  setSearch]  = useState('');
-  const [saving,  setSaving]  = useState(false);
+  const [cart,          setCart]          = useState([]);
+  const [note,          setNote]          = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('efectivo');
+  const [search,        setSearch]        = useState('');
+  const [saving,        setSaving]        = useState(false);
 
   // ── History filters ───────────────────────────────────────
   const [histSearch, setHistSearch] = useState('');
@@ -23,14 +27,11 @@ export function useSales() {
   // ── Confirm delete ────────────────────────────────────────
   const [confirmSale, setConfirmSale] = useState(null);
 
-  // ── Derived: filtered products for picker ─────────────────
+  // ── Filtered products for picker ─────────────────────────
   const availableProducts = useMemo(() =>
     products
       .filter(p => getStatus(p) !== 'agotado')
-      .filter(p =>
-        !search ||
-        p.name.toLowerCase().includes(search.toLowerCase())
-      )
+      .filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => a.name.localeCompare(b.name)),
     [products, search, getStatus]
   );
@@ -69,6 +70,7 @@ export function useSales() {
   const clearCart = useCallback(() => {
     setCart([]);
     setNote('');
+    setPaymentMethod('efectivo');
   }, []);
 
   // ── Cart totals ───────────────────────────────────────────
@@ -88,17 +90,16 @@ export function useSales() {
     if (!cart.length || saving) return;
     setSaving(true);
     try {
-      await registerSale(cart, note);
+      await registerSale(cart, note, paymentMethod);
       clearCart();
     } finally {
       setSaving(false);
     }
-  }, [cart, note, saving, registerSale, clearCart]);
+  }, [cart, note, paymentMethod, saving, registerSale, clearCart]);
 
-  // ── History ───────────────────────────────────────────────
+  // ── History (filtered) ────────────────────────────────────
   const filteredSales = useMemo(() => {
     let list = [...sales];
-
     if (histSearch) {
       const q = histSearch.toLowerCase();
       list = list.filter(s =>
@@ -107,11 +108,9 @@ export function useSales() {
         (s.note || '').toLowerCase().includes(q)
       );
     }
-
     if (dateFrom) list = list.filter(s => s.date >= dateFrom);
     if (dateTo)   list = list.filter(s => s.date <= dateTo + 'T23:59:59');
-
-    return list; // already sorted desc by useFirestoreSync
+    return list;
   }, [sales, histSearch, dateFrom, dateTo]);
 
   // ── Delete sale ───────────────────────────────────────────
@@ -122,23 +121,16 @@ export function useSales() {
   }, [confirmSale, deleteSale]);
 
   return {
-    // Products
     availableProducts, products, categories,
     search, setSearch,
-
-    // Cart
     cart, note, setNote,
+    paymentMethod, setPaymentMethod,
     addToCart, removeFromCart, setQty, clearCart,
-    cartTotals, saving,
-    submitSale,
-
-    // History
+    cartTotals, saving, submitSale,
     sales, filteredSales,
     histSearch, setHistSearch,
     dateFrom, setDateFrom,
     dateTo, setDateTo,
-
-    // Delete
     confirmSale, setConfirmSale,
     handleDeleteSale,
   };

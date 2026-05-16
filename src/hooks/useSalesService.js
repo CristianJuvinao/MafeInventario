@@ -9,18 +9,17 @@ import { userDoc, userCol, uid } from '../utils/firestore';
 export function useSalesService(userId, products, categories, toast) {
 
   /**
-   * registerSale(items, note)
+   * registerSale(items, note, paymentMethod)
    * items: [{ productId, qty }]
-   * Crea un sale_group con N líneas (una por producto)
-   * y descuenta el stock de cada uno.
+   * Crea un sale_group con N líneas y descuenta el stock.
    */
-  const registerSale = useCallback(async (items, note = '') => {
+  const registerSale = useCallback(async (items, note = '', paymentMethod = 'efectivo') => {
     if (!userId || !items.length) return;
 
-    const batch   = writeBatch(db);
+    const batch       = writeBatch(db);
     const saleGroupId = 'sg_' + uid();
-    const date    = new Date().toISOString();
-    let   totalProfit = 0;
+    const date        = new Date().toISOString();
+    let   totalProfit  = 0;
     let   totalRevenue = 0;
 
     const lines = [];
@@ -29,22 +28,22 @@ export function useSalesService(userId, products, categories, toast) {
       const prod = products.find(p => p.id === productId);
       if (!prod || qty <= 0) continue;
 
-      const salePrice    = prod.price || 0;
+      const salePrice     = prod.price || 0;
       const purchasePrice = prod.purchasePrice || 0;
-      const profit       = (salePrice - purchasePrice) * qty;
-      const revenue      = salePrice * qty;
-      const cat          = categories.find(c => c.id === prod.categoryId);
+      const profit        = (salePrice - purchasePrice) * qty;
+      const revenue       = salePrice * qty;
+      const cat           = categories.find(c => c.id === prod.categoryId);
 
       totalProfit  += profit;
       totalRevenue += revenue;
 
-      // Documento de venta inmutable — snapshot del momento
-      const saleId = 'sale_' + uid();
+      const saleId  = 'sale_' + uid();
       const saleDoc = {
         id:            saleId,
         saleGroupId,
         date,
         note,
+        paymentMethod,
         productId:     prod.id,
         productName:   prod.name,
         categoryId:    prod.categoryId  || '',
@@ -62,13 +61,12 @@ export function useSalesService(userId, products, categories, toast) {
       lines.push(saleDoc);
 
       // Descontar stock
-      const newQty = Math.max(0, prod.quantity - qty);
       batch.set(userDoc(userId, 'products', productId), {
         ...prod,
-        quantity: newQty,
+        quantity: Math.max(0, prod.quantity - qty),
       });
 
-      // Log en movements para auditoría
+      // Log en movements
       const movId = 'm_' + uid();
       batch.set(userDoc(userId, 'movements', movId), {
         productId:   prod.id,
@@ -92,20 +90,16 @@ export function useSalesService(userId, products, categories, toast) {
     return { saleGroupId, lines, totalProfit, totalRevenue };
   }, [userId, products, categories, toast]);
 
-
   /**
    * deleteSale(sale)
-   * Elimina UNA línea de venta y devuelve el stock.
+   * Elimina una línea de venta y devuelve el stock.
    */
   const deleteSale = useCallback(async (sale) => {
     if (!userId) return;
 
     const batch = writeBatch(db);
-
-    // Borrar el documento de venta
     batch.delete(userDoc(userId, 'sales', sale.id));
 
-    // Devolver stock
     const prod = products.find(p => p.id === sale.productId);
     if (prod) {
       batch.set(userDoc(userId, 'products', sale.productId), {
@@ -117,7 +111,6 @@ export function useSalesService(userId, products, categories, toast) {
     await batch.commit();
     toast('Venta eliminada y stock restaurado');
   }, [userId, products, toast]);
-
 
   return { registerSale, deleteSale };
 }

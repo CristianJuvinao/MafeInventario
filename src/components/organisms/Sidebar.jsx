@@ -5,36 +5,43 @@ import {
   Sun, Moon, LogOut,
   LayoutDashboard, Package, Tags,
   AlertTriangle, History, FileSpreadsheet,
-  Truck, BarChart2, ShoppingCart,
+  Truck, BarChart2, ShoppingCart, ClipboardList, Wallet,
 } from 'lucide-react';
 import { SidebarLogo }         from '../atoms/SidebarLogo';
 import { SidebarNavItem }      from '../atoms/SidebarNavItem';
 import { SidebarCategoryItem } from '../atoms/SidebarCategoryItem';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',  label: 'Dashboard',      icon: LayoutDashboard },
-  { id: 'sales',      label: 'Ventas',          icon: ShoppingCart     },
-  { id: 'products',   label: 'Productos',       icon: Package          },
-  { id: 'categories', label: 'Categorías',      icon: Tags             },
-  { id: 'alerts',     label: 'Alertas',         icon: AlertTriangle    },
-  { id: 'history',    label: 'Historial',       icon: History          },
-  { id: 'import',     label: 'Importar Excel',  icon: FileSpreadsheet  },
-  { id: 'suppliers',  label: 'Proveedores',     icon: Truck            },
-  { id: 'reports',    label: 'Reportes',        icon: BarChart2        },
+  { id: 'dashboard',  label: 'Dashboard',        icon: LayoutDashboard },
+  { id: 'sales',      label: 'Ventas',            icon: ShoppingCart    },
+  { id: 'caja',       label: 'Corte de Caja',     icon: Wallet          },
+  { id: 'products',   label: 'Productos',         icon: Package         },
+  { id: 'categories', label: 'Categorías',        icon: Tags            },
+  { id: 'alerts',     label: 'Alertas',           icon: AlertTriangle   },
+  { id: 'orders',     label: 'Órdenes de compra', icon: ClipboardList   },
+  { id: 'suppliers',  label: 'Proveedores',       icon: Truck           },
+  { id: 'history',    label: 'Historial',         icon: History         },
+  { id: 'import',     label: 'Importar Excel',    icon: FileSpreadsheet },
+  { id: 'reports',    label: 'Reportes',          icon: BarChart2       },
 ];
 
 export default function Sidebar({ page, setPage, open, setOpen }) {
-  const { categories, products, movements, sales, getStatus, theme, setTheme } = useApp();
+  const { categories, products, movements, sales, orders, getStatus, theme, setTheme } = useApp();
   const { logout } = useAuth();
 
-  const alertCount = products.filter(p => getStatus(p) !== 'ok').length;
+  const alertCount  = products.filter(p => getStatus(p) !== 'ok').length;
+  const pendOrders  = orders.filter(o => o.status === 'pendiente' || o.status === 'enviada').length;
+  const todayStr    = new Date().toISOString().slice(0, 10);
+  const cajaTodayCount = sales.filter(s => s.date?.slice(0, 10) === todayStr).length;
 
   const navWithBadges = NAV_ITEMS.map(item => ({
     ...item,
     badge:
-      item.id === 'alerts'  ? alertCount :
+      item.id === 'alerts'  ? alertCount      :
+      item.id === 'orders'  ? pendOrders       :
+      item.id === 'caja'    ? cajaTodayCount   :
       item.id === 'history' ? movements.length || 0 :
-      item.id === 'sales'   ? sales.length || 0 : 0,
+      item.id === 'sales'   ? sales.length    || 0 : 0,
   }));
 
   const handleNav = (id) => { setPage(id); setOpen(false); };

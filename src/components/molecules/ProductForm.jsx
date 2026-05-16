@@ -1,22 +1,22 @@
 // src/components/molecules/ProductForm.jsx
 import { useState } from 'react';
-import { useApp }   from '../../context/AppContext';
-import { UNITS }    from '../../utils/constants';
+import { useApp }      from '../../context/AppContext';
+import { UNITS }       from '../../utils/constants';
 import { FormField }   from '../atoms/FormField';
 import { FormActions } from '../atoms/FormActions';
 
 export function ProductForm({ initial = {}, onSave, onCancel }) {
-  const { categories } = useApp();
+  const { categories, suppliers } = useApp();
 
   const [form, setForm] = useState({
     name:          '',
     categoryId:    categories?.[0]?.id || '',
+    supplierId:    '',
     purchasePrice: '',
     price:         '',
     quantity:      '',
     unit:          'unidad',
     minStock:      '5',
-    barcode:       '',
     ...initial,
   });
 
@@ -37,10 +37,14 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
     });
   };
 
+  const activeSuppliers = suppliers.filter(s => s.active !== false);
+  const margin = form.price && form.purchasePrice && Number(form.purchasePrice) > 0
+    ? (((Number(form.price) - Number(form.purchasePrice)) / Number(form.purchasePrice)) * 100).toFixed(1)
+    : null;
+
   return (
     <div className="form-grid">
 
-      {/* Nombre */}
       <FormField label="Nombre del producto *" className="full">
         <input
           type="text" name="name"
@@ -49,7 +53,6 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
         />
       </FormField>
 
-      {/* Categoría */}
       <FormField label="Categoría">
         <select name="categoryId" className="form-select"
           value={form.categoryId} onChange={handleChange}
@@ -62,14 +65,23 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
         </select>
       </FormField>
 
-      {/* Unidad */}
+      <FormField label="Proveedor">
+        <select name="supplierId" className="form-select"
+          value={form.supplierId} onChange={handleChange}
+        >
+          <option value="">— Sin proveedor —</option>
+          {activeSuppliers.map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+      </FormField>
+
       <FormField label="Unidad de medida">
         <select name="unit" className="form-select" value={form.unit} onChange={handleChange}>
           {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
         </select>
       </FormField>
 
-      {/* Precios */}
       <FormField label="Precio de compra (COP)">
         <input type="number" name="purchasePrice" min="0" placeholder="0"
           value={form.purchasePrice} onChange={handleChange} />
@@ -80,7 +92,6 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
           value={form.price} onChange={handleChange} />
       </FormField>
 
-      {/* Stock */}
       <FormField label="Cantidad disponible">
         <input type="number" name="quantity" min="0" placeholder="0"
           value={form.quantity} onChange={handleChange} />
@@ -91,17 +102,14 @@ export function ProductForm({ initial = {}, onSave, onCancel }) {
           value={form.minStock} onChange={handleChange} />
       </FormField>
 
-      {/* Margen calculado en tiempo real */}
-      {form.price && form.purchasePrice && Number(form.purchasePrice) > 0 && (
+      {margin !== null && (
         <div className="full" style={{
           padding: '10px 14px', borderRadius: 10,
           background: 'var(--green-dim)',
           display: 'flex', alignItems: 'center', gap: 10,
           fontSize: 13, color: 'var(--green)', fontWeight: 600,
         }}>
-          Margen estimado:{' '}
-          {(((Number(form.price) - Number(form.purchasePrice)) / Number(form.purchasePrice)) * 100).toFixed(1)}%
-          {' '}· Ganancia por unidad:{' '}
+          Margen estimado: {margin}% · Ganancia por unidad:{' '}
           ${(Number(form.price) - Number(form.purchasePrice)).toLocaleString('es-CO')}
         </div>
       )}

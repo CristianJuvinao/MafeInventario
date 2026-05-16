@@ -1,5 +1,6 @@
 // src/hooks/useFirestoreSync.js
-// Mantiene categories, products, movements y SALES sincronizados con Firestore.
+// Mantiene categories, products, movements, sales, orders y suppliers
+// sincronizados con Firestore en tiempo real.
 import { useState, useEffect } from 'react';
 import { onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -11,13 +12,18 @@ export function useFirestoreSync(userId) {
   const [products,   setProducts]   = useState([]);
   const [movements,  setMovements]  = useState([]);
   const [sales,      setSales]      = useState([]);
+  const [orders,     setOrders]     = useState([]);
+  const [suppliers,  setSuppliers]  = useState([]);
   const [ready,      setReady]      = useState(false);
 
   useEffect(() => {
     if (!userId) { setReady(false); return; }
 
     setReady(false);
-    const loaded = { categories: false, products: false, movements: false, sales: false };
+    const loaded = {
+      categories: false, products: false, movements: false,
+      sales: false, orders: false, suppliers: false,
+    };
 
     const markLoaded = key => {
       loaded[key] = true;
@@ -43,7 +49,6 @@ export function useFirestoreSync(userId) {
       markLoaded('movements');
     });
 
-    // ── NEW: sales listener ──────────────────────────────────
     const unsubSales = onSnapshot(userCol(userId, 'sales'), snap => {
       setSales(
         snap.docs
@@ -53,7 +58,28 @@ export function useFirestoreSync(userId) {
       markLoaded('sales');
     });
 
-    return () => { unsubCat(); unsubProd(); unsubMov(); unsubSales(); };
+    const unsubOrders = onSnapshot(userCol(userId, 'orders'), snap => {
+      setOrders(
+        snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+      );
+      markLoaded('orders');
+    });
+
+    const unsubSuppliers = onSnapshot(userCol(userId, 'suppliers'), snap => {
+      setSuppliers(
+        snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      );
+      markLoaded('suppliers');
+    });
+
+    return () => {
+      unsubCat(); unsubProd(); unsubMov();
+      unsubSales(); unsubOrders(); unsubSuppliers();
+    };
   }, [userId]);
 
   // Seed inicial
@@ -67,5 +93,5 @@ export function useFirestoreSync(userId) {
     batch.commit();
   }, [ready, userId, categories.length, products.length]);
 
-  return { categories, products, movements, sales, ready };
+  return { categories, products, movements, sales, orders, suppliers, ready };
 }

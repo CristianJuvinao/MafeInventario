@@ -1,34 +1,21 @@
 // src/hooks/useSuppliers.js
-// Proveedores persistidos en Firestore (colección `suppliers`)
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { onSnapshot, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+// UI logic para la página de proveedores.
+// Los datos vienen de AppContext (useFirestoreSync) — sin listener propio.
+import { useState, useMemo, useCallback } from 'react';
+import { setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useApp }  from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { userCol, userDoc, uid } from '../utils/firestore';
+import { userDoc, uid } from '../utils/firestore';
 
 export function useSuppliers() {
-  const { categories } = useApp();
+  const { suppliers, categories } = useApp();
   const { user } = useAuth();
   const userId = user?.uid;
 
-  const [suppliers, setSuppliers] = useState([]);
   const [search,    setSearch]    = useState('');
   const [showForm,  setShowForm]  = useState(false);
   const [editSupp,  setEditSupp]  = useState(null);
   const [confirmId, setConfirmId] = useState(null);
-
-  // ── Firestore listener ─────────────────────────────────
-  useEffect(() => {
-    if (!userId) return;
-    const unsub = onSnapshot(userCol(userId, 'suppliers'), snap => {
-      setSuppliers(
-        snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => a.name.localeCompare(b.name))
-      );
-    });
-    return unsub;
-  }, [userId]);
 
   const filtered = useMemo(() =>
     suppliers.filter(s => {

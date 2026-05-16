@@ -7,6 +7,7 @@ import { useFirestoreSync }   from '../hooks/useFirestoreSync';
 import { useCategoryService } from '../hooks/useCategoryService';
 import { useProductService }  from '../hooks/useProductService';
 import { useSalesService }    from '../hooks/useSalesService';
+import { useOrdersService }   from '../hooks/useOrdersService';
 import { getStatus }          from '../utils/helpers.js';
 
 const AppContext = createContext(null);
@@ -17,11 +18,13 @@ export function AppProvider({ children }) {
 
   const { theme, setTheme }                                    = useTheme();
   const { toasts, toast }                                      = useToast();
-  const { categories, products, movements, sales, ready }      = useFirestoreSync(userId);
+  const { categories, products, movements, sales, orders, suppliers, ready } = useFirestoreSync(userId);
   const { addCategory, updateCategory, deleteCategory }        = useCategoryService(userId, categories, products, toast);
   const { addProduct, updateProduct, deleteProduct,
           registerMovement, clearMovements: _clearMovements }  = useProductService(userId, products, toast);
   const { registerSale, deleteSale }                           = useSalesService(userId, products, categories, toast);
+  const { createOrder, updateOrderStatus,
+          receiveOrder, deleteOrder }                          = useOrdersService(userId, products, toast);
 
   const clearMovements = useCallback(
     () => _clearMovements(movements),
@@ -53,12 +56,13 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      categories, products, movements, sales, ready,
+      categories, products, movements, sales, orders, suppliers, ready,
       theme, setTheme, toasts, toast,
       addCategory, updateCategory, deleteCategory,
       addProduct, updateProduct, deleteProduct,
       registerMovement, clearMovements,
       registerSale, deleteSale,
+      createOrder, updateOrderStatus, receiveOrder, deleteOrder,
       getStatus, exportCSV,
     }}>
       {children}

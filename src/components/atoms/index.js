@@ -19,3 +19,11 @@ export { ProductRow }          from './ProductRow';
 export { ProductTableFooter }  from './ProductTableFooter';
 export { AlertsSummary }       from './AlertsSummary';
 export { AlertRow }            from './AlertRow';
+export { Price }               from './Price';
+export {
+  DailyBarChart,
+  LineAreaChart,
+  DonutChart,
+  HorizontalBarChart,
+  ChartLegend,
+} from './ChartComponents';

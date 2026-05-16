@@ -14,6 +14,8 @@ import ImportPage    from './pages/ImportPage';
 import SuppliersPage from './pages/SuppliersPage';
 import ReportsPage   from './pages/ReportsPage';
 import SalesPage     from './pages/SalesPage';
+import OrdersPage    from './pages/OrdersPage';
+import CajaPage      from './pages/CajaPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { AlertsPage }     from './pages/AlertsPage';
 
@@ -21,19 +23,32 @@ import {
   LayoutDashboard, Package, Folder,
   AlertTriangle, History, FileSpreadsheet,
   Truck, BarChart2, Boxes, Bell, Settings,
-  ShoppingCart,
+  ShoppingCart, ClipboardList, Wallet,
 } from 'lucide-react';
 
+/* Carga Chart.js desde CDN una sola vez al montar la app */
+function useChartJs() {
+  useEffect(() => {
+    if (window.Chart) return;
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }, []);
+}
+
 const PAGES = {
-  dashboard:  { label: 'Dashboard',       icon: LayoutDashboard },
-  products:   { label: 'Productos',        icon: Package         },
-  categories: { label: 'Categorías',       icon: Folder          },
-  alerts:     { label: 'Alertas de Stock', icon: AlertTriangle   },
-  history:    { label: 'Historial',        icon: History         },
-  import:     { label: 'Importar Excel',   icon: FileSpreadsheet },
-  suppliers:  { label: 'Proveedores',      icon: Truck           },
-  reports:    { label: 'Reportes',         icon: BarChart2       },
-  sales:      { label: 'Ventas',           icon: ShoppingCart    },
+  dashboard:  { label: 'Dashboard',          icon: LayoutDashboard },
+  sales:      { label: 'Ventas',             icon: ShoppingCart    },
+  caja:       { label: 'Corte de Caja',      icon: Wallet          },
+  products:   { label: 'Productos',           icon: Package         },
+  categories: { label: 'Categorías',          icon: Folder          },
+  alerts:     { label: 'Alertas de Stock',    icon: AlertTriangle   },
+  orders:     { label: 'Órdenes de compra',   icon: ClipboardList   },
+  history:    { label: 'Historial',           icon: History         },
+  import:     { label: 'Importar Excel',      icon: FileSpreadsheet },
+  suppliers:  { label: 'Proveedores',         icon: Truck           },
+  reports:    { label: 'Reportes',            icon: BarChart2       },
 };
 
 function LoadingScreen() {
@@ -67,6 +82,7 @@ export default function App() {
   const { user, loading: authLoading } = useAuth();
   const { theme, ready, movements, products, sales, getStatus } = useApp();
 
+  useChartJs();
   const [page,        setPage]        = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -152,14 +168,16 @@ export default function App() {
 
         <main className="content">
           {page === 'dashboard'  && <DashboardPage setPage={setPage} />}
+          {page === 'sales'      && <SalesPage />}
+          {page === 'caja'       && <CajaPage />}
           {page === 'products'   && <ProductsPage />}
           {page === 'categories' && <CategoriesPage />}
-          {page === 'alerts'     && <AlertsPage />}
+          {page === 'alerts'     && <AlertsPage setPage={setPage} />}
+          {page === 'orders'     && <OrdersPage setPage={setPage} />}
           {page === 'history'    && <HistoryPage />}
           {page === 'import'     && <ImportPage />}
           {page === 'suppliers'  && <SuppliersPage />}
           {page === 'reports'    && <ReportsPage />}
-          {page === 'sales'      && <SalesPage />}
         </main>
       </div>
 
